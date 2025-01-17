@@ -37,7 +37,7 @@ public class WebSecurityConfig {
             // URLごとのアクセス制御を設定
             .authorizeHttpRequests((requests) -> requests
                 // 静的リソース（CSS, JS, 画像など）はすべてのユーザーがアクセス可能
-                .requestMatchers("/css/**", "/images/**", "/js/**", "/storage/**", "/").permitAll()
+            		.requestMatchers("/css/**", "/images/**", "/js/**", "/storage/**", "/", "/signup/**", "/houses", "/houses/{id}").permitAll()  // すべてのユーザーにアクセスを許可するURL
                 // "/admin/**" のURLは管理者ロールを持つユーザーのみアクセス可能
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // その他すべてのURLはログインが必要

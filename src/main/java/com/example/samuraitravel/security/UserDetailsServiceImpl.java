@@ -59,6 +59,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             return new UserDetailsImpl(user, authorities);
         } catch (Exception e) {
             // ユーザーが見つからない場合の例外をスロー
+        	e.printStackTrace();
             throw new UsernameNotFoundException("ユーザーが見つかりませんでした。");
         }
     }   
