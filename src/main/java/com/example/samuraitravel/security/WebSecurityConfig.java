@@ -1,75 +1,67 @@
 package com.example.samuraitravel.security;
 
-// 必要なクラスをインポート
-import org.springframework.context.annotation.Bean; // Bean定義用のアノテーション
-import org.springframework.context.annotation.Configuration; // 設定クラスを示すアノテーション
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity; // メソッド単位のセキュリティを有効化
-import org.springframework.security.config.annotation.web.builders.HttpSecurity; // HTTPセキュリティの設定
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity; // Webセキュリティを有効化
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // パスワードのハッシュ化用
-import org.springframework.security.crypto.password.PasswordEncoder; // パスワードエンコーダインターフェース
-import org.springframework.security.web.SecurityFilterChain; // セキュリティフィルタチェーン
+// Spring Security設定に必要なパッケージをインポート
+import org.springframework.context.annotation.Bean; // Beanを定義するためのアノテーション
+import org.springframework.context.annotation.Configuration; // コンフィギュレーションクラスのアノテーション
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity; // メソッドレベルのセキュリティ設定を有効化
+import org.springframework.security.config.annotation.web.builders.HttpSecurity; // HTTPセキュリティ設定を行うためのクラス
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity; // Webセキュリティ設定を有効化
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // パスワードを暗号化するためのエンコーダー
+import org.springframework.security.crypto.password.PasswordEncoder; // パスワードエンコーダーのインターフェース
+import org.springframework.security.web.SecurityFilterChain; // セキュリティフィルターチェーンの構築クラス
 
 /**
- * WebSecurityConfigクラス
- * アプリケーション全体のセキュリティ設定を管理します。
- * - URLごとのアクセス制御
- * - ログイン/ログアウトの挙動設定
- * - パスワードのハッシュ化設定
+ * Spring Securityの設定クラス
  */
-@Configuration // このクラスが設定クラスであることを示すアノテーション
-@EnableWebSecurity // Spring Securityを有効化
-@EnableMethodSecurity // メソッド単位のセキュリティ（@PreAuthorizeなど）を有効化
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
 public class WebSecurityConfig {
 
     /**
-     * SecurityFilterChainの定義
-     * - アプリケーション全体のセキュリティポリシーを設定します。
-     * - URLごとのアクセス制御、ログインページの設定、ログアウトの設定などを行います。
-     *
-     * @param http HttpSecurityオブジェクト（Spring Securityの設定を記述）
-     * @return SecurityFilterChainオブジェクト
-     * @throws Exception 設定に問題があった場合にスローされる例外
+     * HTTPセキュリティ設定を構築します
+     * 
+     * @param http HTTPセキュリティ設定のオブジェクト
+     * @return SecurityFilterChain セキュリティフィルターチェーン
+     * @throws Exception 設定に失敗した場合の例外
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // URLごとのアクセス制御を設定
             .authorizeHttpRequests((requests) -> requests
-                // 静的リソース（CSS, JS, 画像など）はすべてのユーザーがアクセス可能
-            		.requestMatchers("/css/**", "/images/**", "/js/**", "/storage/**", "/", "/signup/**", "/houses", "/houses/{id}").permitAll()  // すべてのユーザーにアクセスを許可するURL
-                // "/admin/**" のURLは管理者ロールを持つユーザーのみアクセス可能
+                // すべてのユーザーにアクセスを許可するURL
+                .requestMatchers("/css/**", "/images/**", "/js/**", "/storage/**", "/", "/signup/**", "/houses", "/houses/{id}", "/stripe/webhook").permitAll()
+                // 管理者にのみアクセスを許可するURL
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                // その他すべてのURLはログインが必要
+                // それ以外のリクエストには認証が必要
                 .anyRequest().authenticated()
             )
-            // ログインの設定
+            // ログイン設定
             .formLogin((form) -> form
                 .loginPage("/login")              // ログインページのURL
-                .loginProcessingUrl("/login")     // ログインフォームの送信先URL
-                .defaultSuccessUrl("/?loggedIn")  // ログイン成功時のリダイレクト先URL
-                .failureUrl("/login?error")       // ログイン失敗時のリダイレクト先URL
-                .permitAll()                      // ログインページへのアクセスをすべてのユーザーに許可
+                .loginProcessingUrl("/login")     // ログイン処理のURL
+                .defaultSuccessUrl("/?loggedIn")  // ログイン成功時のリダイレクト先
+                .failureUrl("/login?error")       // ログイン失敗時のリダイレクト先
+                .permitAll()
             )
-            // ログアウトの設定
+            // ログアウト設定
             .logout((logout) -> logout
-                .logoutSuccessUrl("/?loggedOut")  // ログアウト成功時のリダイレクト先URL
-                .permitAll()                      // ログアウトURLへのアクセスをすべてのユーザーに許可
-            );
-
-        // 設定を反映させたSecurityFilterChainオブジェクトを返す
+                .logoutSuccessUrl("/?loggedOut")  // ログアウト成功時のリダイレクト先
+                .permitAll()
+            )
+            // 特定のリクエストに対してCSRF保護を無効化
+            .csrf().ignoringRequestMatchers("/stripe/webhook");
+        
         return http.build();
     }
 
     /**
-     * パスワードエンコーダの定義
-     * - ユーザーが登録したパスワードを安全にハッシュ化して保存するために使用します。
-     * - BCryptPasswordEncoderは、安全性が高いハッシュアルゴリズムを使用します。
-     *
-     * @return PasswordEncoderオブジェクト
+     * パスワードをハッシュ化するためのエンコーダーを定義
+     * 
+     * @return PasswordEncoder パスワードエンコーダー
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // BCryptアルゴリズムを使用してパスワードをハッシュ化
+        return new BCryptPasswordEncoder();
     }
 }

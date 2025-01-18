@@ -1,74 +1,56 @@
 package com.example.samuraitravel.service;
 
-import java.io.IOException; // 入出力エラー処理用
-import java.nio.file.Files; // ファイル操作用クラス
-import java.nio.file.Path; // ファイルのパスを表すクラス
-import java.nio.file.Paths; // ファイルパスを操作するユーティリティクラス
-import java.util.UUID; // 一意の識別子を生成するクラス
+// 必要なインポート
+import java.io.IOException; // 入出力例外を処理するため
+import java.nio.file.Files; // ファイル操作のユーティリティ
+import java.nio.file.Path; // ファイルパスを表すクラス
+import java.nio.file.Paths; // ファイルパスを操作するためのユーティリティ
+import java.util.UUID; // 一意のファイル名を生成するため
 
-import org.springframework.stereotype.Service; // サービスクラスを示すアノテーション
-import org.springframework.transaction.annotation.Transactional; // トランザクション管理用アノテーション
-import org.springframework.web.multipart.MultipartFile; // ファイルアップロード用クラス
+import org.springframework.stereotype.Service; // このクラスをサービス層として定義するアノテーション
+import org.springframework.transaction.annotation.Transactional; // トランザクション処理を保証するアノテーション
+import org.springframework.web.multipart.MultipartFile; // アップロードされたファイルを表すクラス
 
-import com.example.samuraitravel.entity.House; // 民宿エンティティクラス
-import com.example.samuraitravel.form.HouseEditForm; // 民宿編集フォームクラス
-import com.example.samuraitravel.form.HouseRegisterForm; // 民宿登録フォームクラス
-import com.example.samuraitravel.repository.HouseRepository; // 民宿データ操作用リポジトリ
+import com.example.samuraitravel.entity.House; // 民宿データを表すエンティティ
+import com.example.samuraitravel.form.HouseEditForm; // 民宿編集フォーム
+import com.example.samuraitravel.form.HouseRegisterForm; // 民宿登録フォーム
+import com.example.samuraitravel.repository.HouseRepository; // 民宿データ操作を行うリポジトリ
 
 /**
- * HouseServiceクラス
- * 民宿に関するビジネスロジックを処理するサービスクラス。
- * Springの@Serviceアノテーションにより、DIコンテナで管理されるBeanとして登録されます。
+ * 民宿に関する処理を行うサービスクラス。
  */
 @Service
 public class HouseService {
-
-    // 民宿情報を操作するリポジトリ
-    private final HouseRepository houseRepository;
+    private final HouseRepository houseRepository; // 民宿データを操作するリポジトリ
 
     /**
      * コンストラクタ
-     * HouseRepositoryを依存性注入（DI）で取得
-     *
-     * @param houseRepository 民宿情報を操作するリポジトリ
+     * @param houseRepository 民宿リポジトリのインスタンス
      */
     public HouseService(HouseRepository houseRepository) {
         this.houseRepository = houseRepository;
     }
 
     /**
-     * 民宿の新規作成処理
-     * 入力されたフォームデータをもとに民宿データを登録します。
-     *
-     * @param houseRegisterForm フォームデータ（ユーザー入力）
+     * 民宿を登録するメソッド。
+     * 
+     * @param houseRegisterForm 民宿登録フォームのデータ
      */
-    @Transactional // トランザクション管理を指定
+    @Transactional // このメソッドがトランザクションとして実行されることを保証
     public void create(HouseRegisterForm houseRegisterForm) {
-        // 新しいHouseエンティティを作成
-        House house = new House();
+        House house = new House(); // 民宿エンティティを生成
+        MultipartFile imageFile = houseRegisterForm.getImageFile(); // アップロードされた画像ファイルを取得
 
-        // 画像ファイルの取得
-        MultipartFile imageFile = houseRegisterForm.getImageFile();
-
-        // 画像ファイルが存在する場合の処理
+        // 画像ファイルが存在する場合、そのファイルを保存
         if (!imageFile.isEmpty()) {
-            // 元のファイル名を取得
-            String imageName = imageFile.getOriginalFilename();
-
-            // 新しいファイル名を生成（UUIDを使用してユニーク化）
-            String hashedImageName = generateNewFileName(imageName);
-
-            // 保存先のパスを作成
-            Path filePath = Paths.get("src/main/resources/static/storage/" + hashedImageName);
-
-            // 画像ファイルを指定した場所にコピー
-            copyImageFile(imageFile, filePath);
-
-            // 画像名をエンティティにセット
-            house.setImageName(hashedImageName);
+            String imageName = imageFile.getOriginalFilename(); // 元のファイル名を取得
+            String hashedImageName = generateNewFileName(imageName); // 一意のファイル名を生成
+            Path filePath = Paths.get("src/main/resources/static/storage/" + hashedImageName); // 保存先のパスを指定
+            copyImageFile(imageFile, filePath); // 画像ファイルをコピー
+            house.setImageName(hashedImageName); // 民宿エンティティにファイル名を設定
         }
 
-        // フォームデータをエンティティにマッピング
+        // 民宿エンティティにフォームデータを設定
         house.setName(houseRegisterForm.getName());
         house.setDescription(houseRegisterForm.getDescription());
         house.setPrice(houseRegisterForm.getPrice());
@@ -77,43 +59,29 @@ public class HouseService {
         house.setAddress(houseRegisterForm.getAddress());
         house.setPhoneNumber(houseRegisterForm.getPhoneNumber());
 
-        // エンティティをデータベースに保存
-        houseRepository.save(house);
+        houseRepository.save(house); // データベースに保存
     }
 
     /**
-     * 民宿の更新処理
-     * 入力されたフォームデータをもとに民宿データを更新します。
-     *
-     * @param houseEditForm フォームデータ（ユーザー入力）
+     * 民宿情報を更新するメソッド。
+     * 
+     * @param houseEditForm 民宿編集フォームのデータ
      */
-    @Transactional // トランザクション管理を指定
+    @Transactional // このメソッドがトランザクションとして実行されることを保証
     public void update(HouseEditForm houseEditForm) {
-        // 更新対象の民宿データを取得
-        House house = houseRepository.getReferenceById(houseEditForm.getId());
+        House house = houseRepository.getReferenceById(houseEditForm.getId()); // 指定IDの民宿データを取得
+        MultipartFile imageFile = houseEditForm.getImageFile(); // アップロードされた画像ファイルを取得
 
-        // 画像ファイルの取得
-        MultipartFile imageFile = houseEditForm.getImageFile();
-
-        // 画像ファイルが存在する場合の処理
+        // 画像ファイルが存在する場合、そのファイルを保存
         if (!imageFile.isEmpty()) {
-            // 元のファイル名を取得
-            String imageName = imageFile.getOriginalFilename();
-
-            // 新しいファイル名を生成（UUIDを使用してユニーク化）
-            String hashedImageName = generateNewFileName(imageName);
-
-            // 保存先のパスを作成
-            Path filePath = Paths.get("src/main/resources/static/storage/" + hashedImageName);
-
-            // 画像ファイルを指定した場所にコピー
-            copyImageFile(imageFile, filePath);
-
-            // 画像名をエンティティにセット
-            house.setImageName(hashedImageName);
+            String imageName = imageFile.getOriginalFilename(); // 元のファイル名を取得
+            String hashedImageName = generateNewFileName(imageName); // 一意のファイル名を生成
+            Path filePath = Paths.get("src/main/resources/static/storage/" + hashedImageName); // 保存先のパスを指定
+            copyImageFile(imageFile, filePath); // 画像ファイルをコピー
+            house.setImageName(hashedImageName); // 民宿エンティティにファイル名を設定
         }
 
-        // フォームデータをエンティティにマッピング
+        // 民宿エンティティにフォームデータを設定
         house.setName(houseEditForm.getName());
         house.setDescription(houseEditForm.getDescription());
         house.setPrice(houseEditForm.getPrice());
@@ -122,43 +90,34 @@ public class HouseService {
         house.setAddress(houseEditForm.getAddress());
         house.setPhoneNumber(houseEditForm.getPhoneNumber());
 
-        // エンティティをデータベースに保存
-        houseRepository.save(house);
+        houseRepository.save(house); // データベースに保存
     }
 
     /**
-     * 新しいファイル名を生成
-     * 元のファイル名を基にUUIDでユニークな名前に変換します。
-     *
+     * ファイル名をUUIDを用いて生成するメソッド。
+     * 
      * @param fileName 元のファイル名
-     * @return UUIDを使用して生成されたユニークなファイル名
+     * @return 一意に生成されたファイル名
      */
     public String generateNewFileName(String fileName) {
-        // ファイル名を"."で分割
-        String[] fileNames = fileName.split("\\.");
+        String[] fileNames = fileName.split("\\."); // ファイル名と拡張子を分割
         for (int i = 0; i < fileNames.length - 1; i++) {
-            // 拡張子以外の部分をUUIDに置き換え
-            fileNames[i] = UUID.randomUUID().toString();
+            fileNames[i] = UUID.randomUUID().toString(); // ファイル名部分をUUIDに置き換える
         }
-        // ファイル名を"."で結合して新しいファイル名を返す
-        String hashedFileName = String.join(".", fileNames);
-        return hashedFileName;
+        return String.join(".", fileNames); // ファイル名を再構築して返す
     }
 
     /**
-     * 画像ファイルを指定したパスにコピー
-     * ユーザーがアップロードした画像ファイルを指定の場所に保存します。
-     *
-     * @param imageFile ユーザーがアップロードした画像ファイル
+     * 画像ファイルを指定したパスにコピーするメソッド。
+     * 
+     * @param imageFile アップロードされた画像ファイル
      * @param filePath 保存先のパス
      */
     public void copyImageFile(MultipartFile imageFile, Path filePath) {
         try {
-            // 入力ストリームから指定したパスにファイルをコピー
-            Files.copy(imageFile.getInputStream(), filePath);
+            Files.copy(imageFile.getInputStream(), filePath); // 画像ファイルを指定のパスにコピー
         } catch (IOException e) {
-            // エラーが発生した場合の処理
-            e.printStackTrace();
+            e.printStackTrace(); // 例外発生時にスタックトレースを出力
         }
     }
 }

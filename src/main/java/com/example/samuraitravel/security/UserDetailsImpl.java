@@ -1,32 +1,26 @@
 package com.example.samuraitravel.security;
 
-// 必要なクラスをインポート
-import java.util.Collection; // 権限のコレクションを扱うためのクラス
+// 必要なインポート文
+import java.util.Collection; // ユーザーの権限情報を保持するコレクション
 
-import org.springframework.security.core.GrantedAuthority; // ユーザーの権限を表すインターフェース
-import org.springframework.security.core.userdetails.UserDetails; // Spring Securityのユーザー情報を扱うインターフェース
+import org.springframework.security.core.GrantedAuthority; // 権限（ロール）を表すインターフェース
+import org.springframework.security.core.userdetails.UserDetails; // Spring Security のユーザー詳細情報を管理するインターフェース
 
-import com.example.samuraitravel.entity.User; // アプリケーションのユーザーデータを表すエンティティ
+import com.example.samuraitravel.entity.User; // アプリケーションのユーザー情報を表すエンティティ
 
 /**
- * UserDetailsImplクラス
- * Spring Securityで認証に使用するためのユーザー情報を管理するクラス。
- * Userエンティティを基に、Spring Securityが必要とする形式に変換します。
+ * `UserDetails` インターフェースの実装クラス。
+ * Spring Security による認証処理で必要なユーザー情報を提供する。
  */
 public class UserDetailsImpl implements UserDetails {
-
-    // ユーザーエンティティ（アプリケーション固有のユーザー情報を保持）
-    private final User user;
-
-    // ユーザーの権限（ロール）を保持するコレクション
-    private final Collection<GrantedAuthority> authorities;
+    private final User user; // ユーザーエンティティ
+    private final Collection<GrantedAuthority> authorities; // ユーザーの権限情報
 
     /**
      * コンストラクタ
-     * ユーザー情報と権限情報を初期化します。
      *
      * @param user ユーザーエンティティ
-     * @param authorities ユーザーの権限（ロール）のコレクション
+     * @param authorities ユーザーの権限情報
      */
     public UserDetailsImpl(User user, Collection<GrantedAuthority> authorities) {
         this.user = user;
@@ -34,19 +28,18 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     /**
-     * アプリケーションのUserエンティティを取得します。
+     * ユーザーエンティティを取得する。
      *
-     * @return Userエンティティ
+     * @return ユーザーエンティティ
      */
     public User getUser() {
         return user;
     }
 
     /**
-     * ユーザーのハッシュ化済みパスワードを返します。
-     * Spring Securityが認証時に利用します。
+     * ユーザーのハッシュ化されたパスワードを返す。
      *
-     * @return ユーザーのハッシュ化済みパスワード
+     * @return ユーザーのパスワード
      */
     @Override
     public String getPassword() {
@@ -54,8 +47,7 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     /**
-     * ログイン時に利用するユーザー名（この場合はメールアドレス）を返します。
-     * Spring Securityが認証時に利用します。
+     * ユーザーの認証に使用される名前（メールアドレス）を返す。
      *
      * @return ユーザーのメールアドレス
      */
@@ -65,10 +57,9 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     /**
-     * ユーザーの権限（ロール）のコレクションを返します。
-     * 権限はSpring Securityがアクセス制御に使用します。
+     * ユーザーに関連付けられた権限（ロール）を返す。
      *
-     * @return ユーザーの権限（ロール）のコレクション
+     * @return 権限のコレクション
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -76,10 +67,9 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     /**
-     * アカウントが期限切れでない場合にtrueを返します。
-     * 常にtrueを返すように設定しています（カスタマイズ可能）。
+     * アカウントが有効期限切れでない場合に `true` を返す。
      *
-     * @return アカウントが期限切れでない場合はtrue
+     * @return 常に `true` （今回は有効期限を使用していない）
      */
     @Override
     public boolean isAccountNonExpired() {
@@ -87,10 +77,9 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     /**
-     * アカウントがロックされていない場合にtrueを返します。
-     * 常にtrueを返すように設定しています（カスタマイズ可能）。
+     * ユーザーアカウントがロックされていない場合に `true` を返す。
      *
-     * @return アカウントがロックされていない場合はtrue
+     * @return 常に `true` （今回はロック機能を使用していない）
      */
     @Override
     public boolean isAccountNonLocked() {
@@ -98,10 +87,9 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     /**
-     * パスワードの有効期限が切れていない場合にtrueを返します。
-     * 常にtrueを返すように設定しています（カスタマイズ可能）。
+     * ユーザーのパスワードが期限切れでない場合に `true` を返す。
      *
-     * @return パスワードの有効期限が切れていない場合はtrue
+     * @return 常に `true` （今回はパスワードの有効期限を使用していない）
      */
     @Override
     public boolean isCredentialsNonExpired() {
@@ -109,10 +97,9 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     /**
-     * アカウントが有効である場合にtrueを返します。
-     * Userエンティティの`enabled`フィールドを基に判断します。
+     * ユーザーアカウントが有効である場合に `true` を返す。
      *
-     * @return アカウントが有効である場合はtrue
+     * @return ユーザーの `enabled` フィールドの値
      */
     @Override
     public boolean isEnabled() {

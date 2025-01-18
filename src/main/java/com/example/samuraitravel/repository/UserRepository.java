@@ -1,43 +1,33 @@
 package com.example.samuraitravel.repository;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-// 必要なクラスをインポート
-import org.springframework.data.jpa.repository.JpaRepository; // JpaRepositoryインターフェースを使用するためのインポート
+// Spring Data JPAリポジトリとページングサポート
+import org.springframework.data.domain.Page; // ページングされたデータを扱うためのクラス
+import org.springframework.data.domain.Pageable; // ページングおよびソートの設定を提供
+import org.springframework.data.jpa.repository.JpaRepository; // JPAを使用したCRUD操作を提供するインターフェース
 
-import com.example.samuraitravel.entity.User; // Userエンティティを使用するためのインポート
+// アプリケーション内のエンティティ
+import com.example.samuraitravel.entity.User; // Userエンティティの操作をサポート
 
 /**
- * UserRepositoryインターフェース
- * 
- * Userエンティティに対応するリポジトリクラス。
- * Spring Data JPAを利用して、データベース操作を簡略化するための抽象化されたレイヤーを提供します。
- * 主な役割：
- * - Userエンティティに対するCRUD操作（作成、読み取り、更新、削除）を提供。
- * - カスタムメソッドを定義することで、特定条件でデータを取得可能。
+ * Userエンティティを操作するためのリポジトリインターフェース。
+ * Spring Data JPAにより、自動でCRUD機能が提供されます。
  */
 public interface UserRepository extends JpaRepository<User, Integer> {
-
     /**
-     * メールアドレスを基にUserエンティティを検索するメソッド。
-     * 
-     * @param email 検索対象のメールアドレス
-     * @return 該当するUserエンティティ（存在しない場合はnullを返す）
-     * 
-     * メソッド名を「findBy<フィールド名>」形式にすることで、Spring Data JPAが自動的に適切なクエリを生成します。
-     * この場合、Userエンティティの`email`フィールドを検索条件として使用します。
+     * メールアドレスでユーザーを検索します。
+     *
+     * @param email メールアドレス
+     * @return 検索結果のUser
      */
     public User findByEmail(String email);
-    public Page<User> findByNameLikeOrFuriganaLike(String nameKeyword, String furiganaKeyword, Pageable pageable);
-    
 
     /**
-     * JpaRepositoryインターフェースの主な機能：
-     * - findAll(): 全てのエンティティを取得する。
-     * - findById(ID id): 主キー（id）を基にエンティティを取得。
-     * - save(S entity): エンティティを保存または更新。
-     * - delete(S entity): エンティティを削除。
-     * 
-     * カスタムメソッド（例: findByEmail）は、独自のビジネスロジックに対応するクエリを提供します。
+     * 名前またはフリガナが部分一致するユーザーを検索します。
+     *
+     * @param nameKeyword 名前の検索キーワード
+     * @param furiganaKeyword フリガナの検索キーワード
+     * @param pageable ページング情報
+     * @return ユーザーのページング結果
      */
+    public Page<User> findByNameLikeOrFuriganaLike(String nameKeyword, String furiganaKeyword, Pageable pageable);
 }

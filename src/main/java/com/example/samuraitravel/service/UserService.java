@@ -1,40 +1,35 @@
 package com.example.samuraitravel.service;
 
-// 必要なクラスをインポート
-import org.springframework.security.crypto.password.PasswordEncoder; // パスワードをハッシュ化するためのクラス
-import org.springframework.stereotype.Service; // サービスクラスを示すアノテーション
-import org.springframework.transaction.annotation.Transactional; // トランザクション管理をするためのアノテーション
+// 必要なインポート
+import org.springframework.security.crypto.password.PasswordEncoder; // パスワードを安全にハッシュ化するためのクラス
+import org.springframework.stereotype.Service; // サービスクラスとしてスプリングに認識させるためのアノテーション
+import org.springframework.transaction.annotation.Transactional; // トランザクション管理のためのアノテーション
 
-import com.example.samuraitravel.entity.Role; // 役割情報を表すエンティティ
-import com.example.samuraitravel.entity.User; // ユーザー情報を表すエンティティ
-import com.example.samuraitravel.form.SignupForm; // サインアップフォームデータを扱うクラス
-import com.example.samuraitravel.form.UserEditForm;
-import com.example.samuraitravel.repository.RoleRepository; // Roleエンティティを操作するリポジトリ
-import com.example.samuraitravel.repository.UserRepository; // Userエンティティを操作するリポジトリ
+import com.example.samuraitravel.entity.Role; // ユーザーの役割（ロール）を表すエンティティクラス
+import com.example.samuraitravel.entity.User; // ユーザー情報を表すエンティティクラス
+import com.example.samuraitravel.form.SignupForm; // 新規登録フォームのデータを扱うクラス
+import com.example.samuraitravel.form.UserEditForm; // ユーザー編集フォームのデータを扱うクラス
+import com.example.samuraitravel.repository.RoleRepository; // ロール情報を操作するリポジトリ
+import com.example.samuraitravel.repository.UserRepository; // ユーザー情報を操作するリポジトリ
 
 /**
- * UserServiceクラス
- * ユーザー関連のビジネスロジックを処理するサービスクラス。
+ * ユーザーに関するビジネスロジックを担当するサービスクラス。
+ * ユーザー登録、更新、認証関連の機能を提供します。
  */
 @Service
 public class UserService {
-
     // ユーザー情報を操作するリポジトリ
     private final UserRepository userRepository;
-
     // ロール情報を操作するリポジトリ
     private final RoleRepository roleRepository;
-
-    // パスワードのハッシュ化を担当するエンコーダ
+    // パスワードをハッシュ化するためのエンコーダ
     private final PasswordEncoder passwordEncoder;
 
     /**
-     * コンストラクタ
-     * UserRepository、RoleRepository、PasswordEncoderを依存性注入で取得します。
-     *
-     * @param userRepository ユーザー情報を操作するリポジトリ
-     * @param roleRepository ロール情報を操作するリポジトリ
-     * @param passwordEncoder パスワードをハッシュ化するエンコーダ
+     * コンストラクタでリポジトリとエンコーダを注入。
+     * @param userRepository ユーザーリポジトリ
+     * @param roleRepository ロールリポジトリ
+     * @param passwordEncoder パスワードエンコーダ
      */
     public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -43,93 +38,98 @@ public class UserService {
     }
 
     /**
-     * 新規ユーザーの登録処理
+     * 新規ユーザーを作成し、データベースに保存する。
      *
-     * @param signupForm サインアップフォームデータ
-     * @return 登録されたUserエンティティ
+     * @param signupForm 新規登録フォームのデータ
+     * @return 作成されたユーザーオブジェクト
      */
-    @Transactional // トランザクション管理を指定（途中でエラーが発生した場合はロールバック）
+    @Transactional
     public User create(SignupForm signupForm) {
-        // 新しいユーザーエンティティを作成
+        // 新しいユーザーオブジェクトを作成
         User user = new User();
-
-        // 一般ユーザー用のロールを取得
+        // 一般ユーザー（ROLE_GENERAL）ロールを取得
         Role role = roleRepository.findByName("ROLE_GENERAL");
 
-        // フォームデータをUserエンティティにマッピング
+        // フォームデータをエンティティにセット
         user.setName(signupForm.getName());
         user.setFurigana(signupForm.getFurigana());
         user.setPostalCode(signupForm.getPostalCode());
         user.setAddress(signupForm.getAddress());
         user.setPhoneNumber(signupForm.getPhoneNumber());
         user.setEmail(signupForm.getEmail());
+        user.setPassword(passwordEncoder.encode(signupForm.getPassword())); // パスワードをハッシュ化
+        user.setRole(role); // 一般ユーザーのロールを設定
+        user.setEnabled(false); // 初期状態では無効化
 
-        // パスワードをハッシュ化してセット
-        user.setPassword(passwordEncoder.encode(signupForm.getPassword()));
-
-        // ユーザーにロールをセット
-        user.setRole(role);
-
-        // ユーザーを有効化
-        user.setEnabled(false);
-
-        // ユーザーをデータベースに保存
+        // データベースに保存
         return userRepository.save(user);
     }
-    
+
+    /**
+     * 既存ユーザーの情報を更新する。
+     *
+     * @param userEditForm 編集フォームのデータ
+     */
     @Transactional
     public void update(UserEditForm userEditForm) {
+        // ユーザーIDで既存のユーザーを取得
         User user = userRepository.getReferenceById(userEditForm.getId());
-        
+
+        // フォームデータをエンティティにセット
         user.setName(userEditForm.getName());
         user.setFurigana(userEditForm.getFurigana());
         user.setPostalCode(userEditForm.getPostalCode());
         user.setAddress(userEditForm.getAddress());
         user.setPhoneNumber(userEditForm.getPhoneNumber());
-        user.setEmail(userEditForm.getEmail());      
-        
+        user.setEmail(userEditForm.getEmail());
+
+        // データベースを更新
         userRepository.save(user);
-    }    
-    
-    
+    }
+
     /**
-     * メールアドレスが既に登録されているかをチェック
+     * メールアドレスが既に登録済みかどうかを確認する。
      *
-     * @param email チェックするメールアドレス
-     * @return 登録済みであればtrue、未登録であればfalse
+     * @param email チェック対象のメールアドレス
+     * @return 登録済みの場合はtrue、未登録の場合はfalse
      */
     public boolean isEmailRegistered(String email) {
-        // メールアドレスに一致するユーザーを検索
         User user = userRepository.findByEmail(email);
-
-        // ユーザーが存在すればtrueを返す
         return user != null;
     }
 
     /**
-     * パスワードとパスワード確認用の値が一致しているかをチェック
+     * パスワードとパスワード（確認用）が一致するかを確認する。
      *
      * @param password 入力されたパスワード
      * @param passwordConfirmation 確認用パスワード
-     * @return 一致していればtrue、そうでなければfalse
+     * @return 一致する場合はtrue、一致しない場合はfalse
      */
     public boolean isSamePassword(String password, String passwordConfirmation) {
-        // 2つのパスワードが同じかを比較
         return password.equals(passwordConfirmation);
     }
-    
-    // ユーザーを有効にする
+
+    /**
+     * ユーザーを有効化する（メール認証完了時などに使用）。
+     *
+     * @param user 有効化するユーザーオブジェクト
+     */
     @Transactional
     public void enableUser(User user) {
-        user.setEnabled(true); 
-        userRepository.save(user);
-     }
-    
-    // メールアドレスが変更されたかどうかをチェックする
+        user.setEnabled(true); // ユーザーを有効に設定
+        userRepository.save(user); // データベースを更新
+    }
+
+    /**
+     * メールアドレスが変更されたかを確認する。
+     *
+     * @param userEditForm 編集フォームのデータ
+     * @return 変更されていればtrue、されていなければfalse
+     */
     public boolean isEmailChanged(UserEditForm userEditForm) {
+        // 現在のユーザー情報を取得
         User currentUser = userRepository.getReferenceById(userEditForm.getId());
-        return !userEditForm.getEmail().equals(currentUser.getEmail());      
-    }  
-    
-    
+        // 現在のメールアドレスと新しいメールアドレスを比較
+        return !userEditForm.getEmail().equals(currentUser.getEmail());
+    }
 }

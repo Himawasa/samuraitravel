@@ -1,40 +1,37 @@
-package com.example.samuraitravel.event; // パッケージ名を指定
+package com.example.samuraitravel.event;
 
-// 必要なクラスをインポート
-import org.springframework.context.ApplicationEventPublisher; // アプリケーションイベントを発行するためのクラス
-import org.springframework.stereotype.Component; // Springコンポーネントとして登録
+import org.springframework.context.ApplicationEventPublisher; // スプリングのイベントを発行するためのインターフェース
+import org.springframework.stereotype.Component; // スプリングコンポーネントのアノテーション
 
-import com.example.samuraitravel.entity.User; // ユーザー情報を扱うエンティティクラス
+import com.example.samuraitravel.entity.User; // ユーザーエンティティをインポート
 
 /**
  * SignupEventPublisherクラス
- * サインアップイベントを発行するためのクラス。
- * ユーザー登録後にイベントを発行し、リスナーがそれを処理できるようにする。
+ * 
+ * このクラスは、サインアップイベントを発行する役割を持ちます。
+ * 他のコンポーネントがこのイベントをリスニングし、特定の処理を実行します。
  */
-@Component // Springコンポーネントとして登録
+@Component // スプリング管理のコンポーネントとして登録
 public class SignupEventPublisher {
-
-    private final ApplicationEventPublisher applicationEventPublisher; // イベントを発行するためのクラス
-
+    private final ApplicationEventPublisher applicationEventPublisher; // イベント発行用のインターフェース
+    
     /**
      * コンストラクタ
-     * ApplicationEventPublisherを初期化する。
-     *
-     * @param applicationEventPublisher イベント発行クラス
+     * 
+     * @param applicationEventPublisher スプリングのイベント発行インターフェース
      */
     public SignupEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
         this.applicationEventPublisher = applicationEventPublisher;                
     }
-
+    
     /**
-     * サインアップイベントを発行するメソッド
-     * ユーザー情報とリクエストURLを基にSignupEventを発行する。
-     *
-     * @param user サインアップしたユーザー
-     * @param requestUrl リクエストのベースURL
+     * サインアップイベントを発行します。
+     * 
+     * @param user サインアップしたユーザー情報
+     * @param requestUrl リクエストのURL
      */
     public void publishSignupEvent(User user, String requestUrl) {
-        // SignupEventを作成し、イベントを発行
+        // SignupEventオブジェクトを作成してイベントを発行
         applicationEventPublisher.publishEvent(new SignupEvent(this, user, requestUrl));
     }
 }

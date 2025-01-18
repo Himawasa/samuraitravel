@@ -1,64 +1,59 @@
 package com.example.samuraitravel.service;
 
-// 必要なクラスをインポート
-import org.springframework.stereotype.Service; // サービスクラスであることを示すアノテーション
+// 必要なインポート
+import org.springframework.stereotype.Service; // このクラスをサービス層として定義するアノテーション
 import org.springframework.transaction.annotation.Transactional; // トランザクション管理を行うアノテーション
 
-import com.example.samuraitravel.entity.User; // ユーザーエンティティクラス
-import com.example.samuraitravel.entity.VerificationToken; // トークンエンティティクラス
-import com.example.samuraitravel.repository.VerificationTokenRepository; // トークンリポジトリクラス
+import com.example.samuraitravel.entity.User; // ユーザー情報を表すエンティティクラス
+import com.example.samuraitravel.entity.VerificationToken; // 認証トークンを表すエンティティクラス
+import com.example.samuraitravel.repository.VerificationTokenRepository; // 認証トークンを操作するリポジトリ
 
 /**
- * VerificationTokenServiceクラス
- * ユーザー認証に使用するトークンを操作するためのサービスクラスです。
- * トークンの生成や検索機能を提供します。
+ * 認証トークンに関連するビジネスロジックを担当するサービスクラス。
+ * メール認証に必要なトークンの生成や検索を行います。
  */
-@Service // サービス層のクラスであることを指定
+@Service
 public class VerificationTokenService {
 
-    /**
-     * VerificationTokenRepository
-     * トークンデータを操作するためのリポジトリ
-     */
+    // 認証トークンを操作するリポジトリ
     private final VerificationTokenRepository verificationTokenRepository;
 
     /**
-     * コンストラクタ
-     * VerificationTokenRepositoryを依存性注入（DI）で取得
-     *
-     * @param verificationTokenRepository トークンデータ操作用リポジトリ
+     * コンストラクタでリポジトリを注入。
+     * @param verificationTokenRepository 認証トークンリポジトリ
      */
     public VerificationTokenService(VerificationTokenRepository verificationTokenRepository) {
         this.verificationTokenRepository = verificationTokenRepository;
     }
 
     /**
-     * トークンを新規作成してデータベースに保存します。
+     * 認証トークンを作成し、データベースに保存します。
      *
-     * @param user トークンを関連付けるユーザーエンティティ
-     * @param token トークン文字列
+     * @param user トークンを紐づけるユーザーオブジェクト
+     * @param token 作成するトークンの文字列
      */
-    @Transactional // メソッド内の操作をトランザクションとして管理
+    @Transactional // メソッド内の操作をトランザクションとして扱う
     public void create(User user, String token) {
-        // 新しいVerificationTokenエンティティを作成
+        // 新しいVerificationTokenオブジェクトを作成
         VerificationToken verificationToken = new VerificationToken();
 
-        // ユーザーとトークンをセット
+        // トークンにユーザー情報を紐づける
         verificationToken.setUser(user);
+        // トークン文字列を設定
         verificationToken.setToken(token);
 
-        // トークンデータをデータベースに保存
+        // データベースに保存
         verificationTokenRepository.save(verificationToken);
     }
 
     /**
-     * トークン文字列を使用してVerificationTokenエンティティを取得します。
+     * トークン文字列を使ってデータベースから認証トークンを検索します。
      *
-     * @param token トークン文字列
-     * @return 該当するVerificationTokenエンティティ
+     * @param token 検索対象のトークン文字列
+     * @return 見つかったVerificationTokenオブジェクト、またはnull
      */
     public VerificationToken getVerificationToken(String token) {
-        // トークン文字列で検索し、結果を返す
+        // リポジトリを使用してトークンを検索
         return verificationTokenRepository.findByToken(token);
     }
 }

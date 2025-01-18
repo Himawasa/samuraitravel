@@ -1,130 +1,117 @@
-// このパッケージは、エンティティクラスを格納するためのものです。
-// 一般的に、エンティティクラスは`entity`という名前のパッケージに配置されます。
 package com.example.samuraitravel.entity;
 
-// Javaでタイムスタンプ型データを扱うためのクラス。
-// データベースの日時情報を格納する際に使用されます。
-import java.sql.Timestamp;
+import java.sql.Timestamp; // データベースのタイムスタンプ型に対応
 
-// Jakarta Persistence API（JPA）の`@Column`アノテーションを使用するためのインポート。
-// このアノテーションは、フィールドとデータベース列のマッピングを指定します。
-import jakarta.persistence.Column;
-// JPAの`@Entity`アノテーションを使用するためのインポート。
-// このアノテーションを付与したクラスはエンティティとして扱われます。
-import jakarta.persistence.Entity;
-// JPAの`@GeneratedValue`アノテーションを使用するためのインポート。
-// 主キーの値を自動生成する戦略を指定します。
-import jakarta.persistence.GeneratedValue;
-// JPAの`GenerationType`列挙型を使用するためのインポート。
-// 主キーの生成方法（例: AUTO, IDENTITY, SEQUENCE）を指定するために使用されます。
-import jakarta.persistence.GenerationType;
-// JPAの`@Id`アノテーションを使用するためのインポート。
-// このアノテーションは、主キーを定義するフィールドに付与します。
-import jakarta.persistence.Id;
-// JPAの`@Table`アノテーションを使用するためのインポート。
-// このアノテーションを使うことで、エンティティがマッピングされるテーブル名を指定します。
-import jakarta.persistence.Table;
+import jakarta.persistence.Column; // データベースのカラムを指定するアノテーション
+import jakarta.persistence.Entity; // このクラスをエンティティとして指定するアノテーション
+import jakarta.persistence.GeneratedValue; // 主キーの値を自動生成するためのアノテーション
+import jakarta.persistence.GenerationType; // 主キーの生成戦略を指定する列挙型
+import jakarta.persistence.Id; // 主キーを指定するアノテーション
+import jakarta.persistence.Table; // テーブル名を指定するアノテーション
 
-// Lombokライブラリの`@Data`アノテーションを使用するためのインポート。
-// Lombokを使うことで、ゲッター、セッター、`toString`などを自動生成できます。
-import lombok.Data;
+import lombok.Data; // Lombokの@Dataアノテーションで、ゲッター・セッター、toString、equals、hashCodeを自動生成
 
 /**
  * Houseエンティティクラス
- * このクラスはデータベースの`houses`テーブルと対応しています。
- * エンティティクラスは、データベースとアプリケーション間のデータを
- * マッピングおよび管理するために使用されます。
+ * "houses" テーブルと対応するクラスです。
+ * 民宿情報を表現するデータモデル。
  */
-@Entity // このアノテーションを付けることで、このクラスがエンティティとして扱われます。
-@Table(name = "houses") // エンティティがデータベースの"houses"テーブルに対応していることを指定します。
-@Data // Lombokのアノテーション。ゲッター、セッター、`toString`、`equals`、`hashCode`を自動生成します。
+@Entity // このクラスがデータベースのエンティティであることを指定
+@Table(name = "houses") // このエンティティが "houses" テーブルと対応していることを指定
+@Data // Lombokを使用して、ゲッター、セッター、toString、equals、hashCodeを自動生成
 public class House {
-
+    
     /**
      * 主キー（ID）
-     * 自動生成されるユニークな識別子です。
-     * このフィールドはデータベースの"id"列と対応しています。
+     * データベースの "id" 列と対応します。
+     * 自動生成されるユニークな識別子。
      */
-    @Id // このフィールドがエンティティの主キーであることを示します。
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // 主キーの値をデータベースで自動生成します。
-    @Column(name = "id") // データベース列"houses.id"とこのフィールドをマッピングします。
+    @Id // 主キーを指定
+    @GeneratedValue(strategy = GenerationType.IDENTITY) 
+    // 主キーの値をデータベースのAUTO_INCREMENT機能で自動生成
+    @Column(name = "id") // データベースの列名を "id" にマッピング
     private Integer id;
 
     /**
-     * ハウス名
-     * データベースの"name"列に対応します。
+     * 民宿名
+     * データベースの "name" 列と対応します。
      */
-    @Column(name = "name") // 列名が"name"であることを指定します。
+    @Column(name = "name") // データベースの列名を "name" にマッピング
     private String name;
 
     /**
-     * 画像ファイル名
-     * データベースの"image_name"列に対応します。
+     * 民宿の画像ファイル名
+     * データベースの "image_name" 列と対応します。
+     * 画像ファイルのパスまたは名前を保存します。
      */
-    @Column(name = "image_name") // 列名が"image_name"であることを指定します。
+    @Column(name = "image_name") // データベースの列名を "image_name" にマッピング
     private String imageName;
 
     /**
-     * ハウスの説明
-     * データベースの"description"列に対応します。
+     * 民宿の説明
+     * データベースの "description" 列と対応します。
+     * 民宿の特徴や詳細情報を記述します。
      */
-    @Column(name = "description") // 列名が"description"であることを指定します。
+    @Column(name = "description") // データベースの列名を "description" にマッピング
     private String description;
 
     /**
-     * 価格
-     * ハウスの価格情報を格納します。
-     * データベースの"price"列に対応します。
+     * 宿泊料金
+     * データベースの "price" 列と対応します。
+     * 1泊あたりの料金（整数値）を表します。
      */
-    @Column(name = "price") // 列名が"price"であることを指定します。
+    @Column(name = "price") // データベースの列名を "price" にマッピング
     private Integer price;
 
     /**
-     * 収容人数
-     * このハウスに収容可能な最大人数を表します。
-     * データベースの"capacity"列に対応します。
+     * 宿泊可能人数
+     * データベースの "capacity" 列と対応します。
+     * 民宿に収容可能な最大人数を表します。
      */
-    @Column(name = "capacity") // 列名が"capacity"であることを指定します。
+    @Column(name = "capacity") // データベースの列名を "capacity" にマッピング
     private Integer capacity;
 
     /**
      * 郵便番号
-     * データベースの"postal_code"列に対応します。
+     * データベースの "postal_code" 列と対応します。
+     * 民宿の所在地の郵便番号を保存します。
      */
-    @Column(name = "postal_code") // 列名が"postal_code"であることを指定します。
+    @Column(name = "postal_code") // データベースの列名を "postal_code" にマッピング
     private String postalCode;
 
     /**
      * 住所
-     * ハウスの所在地を表します。
-     * データベースの"address"列に対応します。
+     * データベースの "address" 列と対応します。
+     * 民宿の所在地を保存します。
      */
-    @Column(name = "address") // 列名が"address"であることを指定します。
+    @Column(name = "address") // データベースの列名を "address" にマッピング
     private String address;
 
     /**
      * 電話番号
-     * ハウスの問い合わせ先電話番号を表します。
-     * データベースの"phone_number"列に対応します。
+     * データベースの "phone_number" 列と対応します。
+     * 民宿の連絡先電話番号を保存します。
      */
-    @Column(name = "phone_number") // 列名が"phone_number"であることを指定します。
+    @Column(name = "phone_number") // データベースの列名を "phone_number" にマッピング
     private String phoneNumber;
 
     /**
      * 作成日時
-     * データベースでレコードが作成された日時を表します。
-     * デフォルト値はデータベース側で設定されます（挿入不可、更新不可）。
+     * データベースの "created_at" 列と対応します。
+     * レコードが作成された日時を表します。
+     * データベースが自動的に値を挿入します。
      */
     @Column(name = "created_at", insertable = false, updatable = false) 
-    // データ挿入や更新時に、このフィールドの値は無視されます。
+    // 挿入時のみ設定可能（更新不可）
     private Timestamp createdAt;
 
     /**
      * 更新日時
+     * データベースの "updated_at" 列と対応します。
      * レコードが最後に更新された日時を表します。
-     * デフォルト値はデータベース側で設定されます（挿入不可、更新不可）。
+     * データベースが自動的に値を更新します。
      */
     @Column(name = "updated_at", insertable = false, updatable = false) 
-    // データ挿入や更新時に、このフィールドの値は無視されます。
+    // 更新時に自動設定（挿入時には設定不可）
     private Timestamp updatedAt;
 }
