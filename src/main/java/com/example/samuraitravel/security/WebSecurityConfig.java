@@ -30,7 +30,18 @@ public class WebSecurityConfig {
         http
             .authorizeHttpRequests((requests) -> requests
                 // すべてのユーザーにアクセスを許可するURL
-                .requestMatchers("/css/**", "/images/**", "/js/**", "/storage/**", "/", "/signup/**", "/houses", "/houses/{id}", "/stripe/webhook").permitAll()
+                .requestMatchers(
+                    "/css/**", 
+                    "/images/**", 
+                    "/js/**", 
+                    "/storage/**", 
+                    "/", 
+                    "/signup/**", 
+                    "/houses", 
+                    "/houses/{id}", 
+                    "/houses/{id}/reviews",  // 追加: レビュー一覧ページへのアクセスを許可
+                    "/stripe/webhook"
+                ).permitAll()
                 // 管理者にのみアクセスを許可するURL
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // それ以外のリクエストには認証が必要
